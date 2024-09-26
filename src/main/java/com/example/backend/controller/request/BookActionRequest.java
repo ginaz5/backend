@@ -1,5 +1,6 @@
 package com.example.backend.controller.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,6 +11,9 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BookActionRequest {
-    private UUID userId;
+    @JsonProperty("inventoryId")
     private UUID inventoryId;
+
+    @JsonProperty("userId")
+    private UUID userId;
 }

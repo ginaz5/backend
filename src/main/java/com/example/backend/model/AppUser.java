@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.List;
 import java.util.UUID;
@@ -22,6 +23,8 @@ public class AppUser {
     private String password;
     private String role;
 
+    // A user can have multiple inventory records (borrowed books)
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Inventory> inventories;  // A user can have multiple inventory records
+    @ToString.Exclude
+    private List<Inventory> inventories;
 }

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.List;
 import java.util.UUID;
@@ -22,6 +23,8 @@ public class Book {
     private String title;
     private String image;
 
+    // Bidirectional relationship with Inventory
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Inventory> inventories;  // A book can appear in multiple inventory records (i.e., it can be borrowed multiple times)
+    @ToString.Exclude
+    private List<Inventory> inventories;
 }

@@ -5,7 +5,7 @@ import com.example.backend.model.AppUser;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = InventoryMapper.class)
 public interface UserMapper {
 
     @Mapping(target = "id", source = "user.id")
