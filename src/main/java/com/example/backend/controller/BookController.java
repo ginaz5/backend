@@ -7,6 +7,9 @@ import com.example.backend.exception.BookAlreadyBorrowedException;
 import com.example.backend.exception.BookNotFoundException;
 import com.example.backend.exception.UserNotFoundException;
 import com.example.backend.service.BookService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +33,13 @@ public class BookController {
     }
 
     @PutMapping("/return")
+    @Operation(summary = "Return a book", description = "Return a book")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "202", description = "Accepted"),
+            @ApiResponse(responseCode = "400", description = "Bad Request - Value must be a Guid"),
+            @ApiResponse(responseCode = "404", description = "Not found - The book is not found"),
+            @ApiResponse(responseCode = "409", description = "Conflict - The book can't be returned by another user")
+    })
     public ResponseEntity<String> returnBook(@RequestBody BookActionRequest request) {
         try {
             bookService.returnBook(request);
@@ -44,6 +54,13 @@ public class BookController {
     }
 
     @PutMapping("/borrow")
+    @Operation(summary = "Borrow a book", description = "Borrow a book")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "202", description = "Accepted"),
+            @ApiResponse(responseCode = "400", description = "Bad Request - Value must be a Guid"),
+            @ApiResponse(responseCode = "404", description = "Not found - The book is not found"),
+            @ApiResponse(responseCode = "409", description = "Conflict - The book is already borrowed")
+    })
     public ResponseEntity<String> borrowBook(@RequestBody BookActionRequest request) {
         try {
             bookService.borrowBook(request);
@@ -61,6 +78,12 @@ public class BookController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Get a book by Id", description = "Returns a book")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved"),
+            @ApiResponse(responseCode = "400", description = "Bad Request - Value must be a Guid"),
+            @ApiResponse(responseCode = "404", description = "Not found - The book is not found")
+    })
     public ResponseEntity<Object> getBookById(@PathVariable UUID id) {
         try {
             BookResponse book = bookService.getBookById(id);
@@ -72,6 +95,10 @@ public class BookController {
     }
 
     @GetMapping
+    @Operation(summary = "Get all books", description = "Returns books")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK")
+    })
     public ResponseEntity<List<BookResponse>> getBooks(@RequestParam(defaultValue = "0") int offset,
                                                        @RequestParam(defaultValue = "10") int limit) {
         List<BookResponse> books = bookService.getBooks(offset, limit);
