@@ -36,8 +36,7 @@ public class UserController {
             // Return the UserResponse if authentication was successful
             return ResponseEntity.ok(userResponseOptional.get());
         } else {
-            // Return 401 if authentication failed
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Not found - The user is not found");
         }
     }
     @GetMapping("/{id}")

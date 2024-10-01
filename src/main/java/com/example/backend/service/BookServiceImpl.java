@@ -6,6 +6,7 @@ import com.example.backend.controller.request.BookActionRequest;
 import com.example.backend.controller.response.BookResponse;
 import com.example.backend.exception.BookAlreadyBorrowedException;
 import com.example.backend.exception.BookNotFoundException;
+import com.example.backend.exception.BookReturnConflictException;
 import com.example.backend.exception.UserNotFoundException;
 import com.example.backend.mapper.BookMapper;
 import com.example.backend.model.AppUser;
@@ -14,6 +15,7 @@ import com.example.backend.model.Inventory;
 import com.example.backend.repository.AppUserRepository;
 import com.example.backend.repository.BookRepository;
 import com.example.backend.repository.InventoryRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +27,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class BookServiceImpl implements BookService {
 
     private final BookRepository bookRepository;
@@ -32,53 +35,37 @@ public class BookServiceImpl implements BookService {
     private final AppUserRepository appUserRepository;
     private final BookMapper bookMapper;
 
-    public BookServiceImpl(BookRepository bookRepository, InventoryRepository inventoryRepository,
-                           AppUserRepository appUserRepository, BookMapper bookMapper) {
-        this.bookRepository = bookRepository;
-        this.inventoryRepository = inventoryRepository;
-        this.appUserRepository = appUserRepository;
-        this.bookMapper = bookMapper;
-    }
-
     @Override
     public void returnBook(BookActionRequest request) {
-        // Find the inventory entry by bookId
+        // Find the inventory entry by Id
         Inventory inventory = inventoryRepository.findById(request.getInventoryId())
-                .orElseThrow(() -> new BookNotFoundException("Book not found in inventory"));
+                .orElseThrow(() -> new BookNotFoundException("Book not found"));
 
-        // Check if the logged-in user matches the borrowed user
         if (inventory.getUser() == null || !request.getUserId().equals(inventory.getUser().getId())) {
-            throw new RuntimeException("Book cannot be returned by another user");
+            throw new BookReturnConflictException("Book cannot be returned by another user");
         }
 
-        // Clear the userId and loanDate to mark the book as returned
         inventory.setUser(null);
         inventory.setLoanDate(null);
 
-        // Save the updated inventory
         inventoryRepository.save(inventory);
     }
 
     @Override
     public void borrowBook(BookActionRequest request) {
-        // Find the inventory entry by bookId
         Inventory inventory = inventoryRepository.findById(request.getInventoryId())
-                .orElseThrow(() -> new BookNotFoundException("Book not found in inventory"));
+                .orElseThrow(() -> new BookNotFoundException("Book not found"));
 
-        // Check if the book is already borrowed
         if (inventory.getUser() != null) {
             throw new BookAlreadyBorrowedException("Book is already borrowed");
         }
 
-        // Retrieve the AppUser from the database using the userId
         AppUser user = appUserRepository.findById(request.getUserId())
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User with ID " + request.getUserId() + " not found"));
 
-        // Set the user and loanDate to mark the book as borrowed
         inventory.setUser(user);
         inventory.setLoanDate(LocalDateTime.now());
 
-        // Save the updated inventory
         inventoryRepository.save(inventory);
     }
 
@@ -87,7 +74,7 @@ public class BookServiceImpl implements BookService {
     public BookResponse getBookById(UUID id) {
         return bookRepository.findById(id)
                 .map(bookMapper::toResponse)
-                .orElseThrow(() -> new RuntimeException("Book not found"));
+                .orElseThrow(() -> new BookNotFoundException("Book not found"));
     }
 
     @Override

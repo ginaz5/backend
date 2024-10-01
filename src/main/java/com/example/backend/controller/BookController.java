@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "http://localhost:5173") // for testing front-end
 @RequestMapping("/books")
 public class BookController {
 
@@ -43,13 +43,13 @@ public class BookController {
     public ResponseEntity<String> returnBook(@RequestBody BookActionRequest request) {
         try {
             bookService.returnBook(request);
-            return ResponseEntity.status(HttpStatus.ACCEPTED).build(); // 202 Accepted
+            return ResponseEntity.status(HttpStatus.ACCEPTED).build();
         } catch (BookNotFoundException e) {
-            logger.error("Book not found: {}", e.getMessage()); // Log error to the console
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage()); // 404 Not Found with message
-        } catch (RuntimeException e) { // Generic catch for other potential runtime issues
-            logger.error("Conflict error: {}", e.getMessage()); // Log error to the console
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage()); // 409 Conflict with message
+            logger.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (BookAlreadyBorrowedException e) {
+            logger.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
     }
 
@@ -64,16 +64,13 @@ public class BookController {
     public ResponseEntity<String> borrowBook(@RequestBody BookActionRequest request) {
         try {
             bookService.borrowBook(request);
-            return ResponseEntity.status(HttpStatus.ACCEPTED).build(); // 202 Accepted
+            return ResponseEntity.status(HttpStatus.ACCEPTED).build();
         } catch (BookNotFoundException e) {
-            logger.error("Book not found: {}", e.getMessage()); // Log error to the console
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage()); // 404 Not Found with message
+            logger.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (BookAlreadyBorrowedException e) {
-            logger.error("Book is already borrowed: {}", e.getMessage()); // Log error to the console
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage()); // 409 Conflict with message
-        } catch (UserNotFoundException e) {
-            logger.error("User not found: {}", e.getMessage()); // Log error to the console
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage()); // 404 Not Found for user
+            logger.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
     }
 
@@ -87,10 +84,10 @@ public class BookController {
     public ResponseEntity<Object> getBookById(@PathVariable UUID id) {
         try {
             BookResponse book = bookService.getBookById(id);
-            return ResponseEntity.ok(book); // 200 OK
+            return ResponseEntity.ok(book);
         } catch (BookNotFoundException e) {
-            logger.error("Book not found: {}", e.getMessage()); // Log error to the console
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage()); // 404 Not Found with message
+            logger.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 

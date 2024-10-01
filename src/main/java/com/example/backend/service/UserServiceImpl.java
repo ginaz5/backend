@@ -2,6 +2,7 @@ package com.example.backend.service;
 
 import com.example.backend.controller.request.LoginRequest;
 import com.example.backend.controller.response.UserResponse;
+import com.example.backend.exception.UserNotFoundException;
 import com.example.backend.mapper.UserMapper;
 import com.example.backend.model.AppUser;
 import com.example.backend.repository.AppUserRepository;
@@ -12,13 +13,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor  // Lombok annotation to generate constructor
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final AppUserRepository appUserRepository;
     private final UserMapper userMapper;
 
-    // Login logic previously in AuthService
     public Optional<UserResponse> login(LoginRequest loginRequest) {
         // Authenticate the user
         Optional<AppUser> appUserOptional = authenticate(loginRequest);
@@ -31,14 +31,13 @@ public class UserServiceImpl implements UserService {
         return Optional.empty(); // Return empty if authentication failed
     }
 
-    // Authentication logic moved from AuthService
     private Optional<AppUser> authenticate(LoginRequest loginRequest) {
         // Find the user by username
         Optional<AppUser> userOptional = Optional.ofNullable(appUserRepository.findByUsername(loginRequest.getUsername()));
 
         if (userOptional.isPresent()) {
             AppUser user = userOptional.get();
-            // Compare the plain-text password (in real apps, use hashing)
+            // Compare the plain-text password
             if (user.getPassword().equals(loginRequest.getPassword())) {
                 return Optional.of(user); // Return the user if password matches
             }
@@ -51,7 +50,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse getUserById(UUID id) {
         return appUserRepository.findById(id)
-                .map(userMapper::toResponse)  // The updated UserMapper will map inventories (borrowed books)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .map(userMapper::toResponse)
+                .orElseThrow(() -> new UserNotFoundException("User with ID " + id + " not found"));
     }
 }
