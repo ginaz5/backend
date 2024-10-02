@@ -2,6 +2,7 @@ package com.example.backend.controller;
 
 import com.example.backend.controller.request.LoginRequest;
 import com.example.backend.controller.response.UserResponse;
+import com.example.backend.exception.UserNotFoundException;
 import com.example.backend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -29,17 +30,12 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "Not found - The user is not found")
     })
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        // Call the login service to authenticate and get the user response
-        Optional<UserResponse> userResponseOptional = userService.login(loginRequest);
-
-        if (userResponseOptional.isPresent()) {
-            // Return the UserResponse if authentication was successful
-            return ResponseEntity.ok(userResponseOptional.get());
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Not found - The user is not found");
-        }
+        UserResponse userResponse = userService.login(loginRequest)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        return ResponseEntity.ok(userResponse); // Success response
     }
     @GetMapping("/{id}")
+    @Operation(summary = "Retrieve User", description = "Retrieve User Info")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved"),
             @ApiResponse(responseCode = "404", description = "Not found - The user is not found")

@@ -19,38 +19,21 @@ public class UserServiceImpl implements UserService {
     private final AppUserRepository appUserRepository;
     private final UserMapper userMapper;
 
+    @Override
     public Optional<UserResponse> login(LoginRequest loginRequest) {
-        // Authenticate the user
-        Optional<AppUser> appUserOptional = authenticate(loginRequest);
-
-        if (appUserOptional.isPresent()) {
-            // Map AppUser to UserResponse and return
-            return Optional.of(userMapper.toResponse(appUserOptional.get()));
-        }
-
-        return Optional.empty(); // Return empty if authentication failed
+        return authenticate(loginRequest)
+                .map(userMapper::toResponse);
     }
 
     private Optional<AppUser> authenticate(LoginRequest loginRequest) {
-        // Find the user by username
-        Optional<AppUser> userOptional = Optional.ofNullable(appUserRepository.findByUsername(loginRequest.getUsername()));
-
-        if (userOptional.isPresent()) {
-            AppUser user = userOptional.get();
-            // Compare the plain-text password
-            if (user.getPassword().equals(loginRequest.getPassword())) {
-                return Optional.of(user); // Return the user if password matches
-            }
-        }
-
-        return Optional.empty(); // Username not found or password didn't match
+        return Optional.ofNullable(appUserRepository.findByUsername(loginRequest.getUsername()))
+                .filter(user -> user.getPassword().equals(loginRequest.getPassword()));
     }
-
 
     @Override
     public UserResponse getUserById(UUID id) {
         return appUserRepository.findById(id)
                 .map(userMapper::toResponse)
-                .orElseThrow(() -> new UserNotFoundException("User with ID " + id + " not found"));
+                .orElseThrow(() -> new UserNotFoundException("User Not Found"));
     }
 }
